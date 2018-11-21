@@ -16,7 +16,7 @@ Following assumpution was made:
 */
 
 var xOffset, yOffset;
-canvasEnlargeFactor = 1.05;
+canvasEnlargeFactor = 2;
 Dialog.create("Display Positions...");
 Dialog.addNumber("\nX-Y calibration (zoom voltage):", 6);
 Dialog.addCheckbox("Open two files (marker coordinates and cell positions)", false);
@@ -53,6 +53,7 @@ print(xRect, yRect, wdRect, htRect);
 	canvasSize = canvasEnlargeFactor*wdRect; // making canvasSize 20% larger than the marker circle
 	xOffset = canvasEnlargeFactor*abs(xRect);
 	yOffset = canvasEnlargeFactor*abs(yRect);
+	
 }
 
 path = File.openDialog("Select Cell Positions text file...");
@@ -65,46 +66,68 @@ y = newArray(positions);
 
 for(i=0, a=0; i<rows.length; i++){
 	if(startsWith(rows[i], "[Position")) {
-		x[a] = -parseFloat(substring(rows[i+1], 11));
+		x[a] = parseFloat(substring(rows[i+1], 11)); // negative sign to convert top right coordinate system to the top left
 		y[a] = parseFloat(substring(rows[i+2], 11));
 //print(x[a], y[a]);
 		a++;
 	}
 }		
 
-newImage("Positions", "8-bit black", canvasSize, canvasSize, 1);
-run("Set Scale...", "distance=1 known=1 unit=um");
-
-circleSize = canvasSize/40;
-print("circle size = "+circleSize);
-setColor("cyan");
-//run("Overlay Options...", "stroke=cyan width=2 fill=cyan show");
-for(i=0; i<3; i++) {
-	xmt[i] = xm[i]+xOffset;
-	ymt[i] = ym[i]+yOffset;	
-//	makeOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
-//	run("Add Selection...");
-	fillOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
+// find canvas size for cell postions without markers
+if(!openTwoFiles) {
+	Array.getStatistics(x, min, max, mean, stdDev);
+	if(min*max < 0) // points are distributed on both sides of y-axis
+		canvasWidth = abs(min) + abs(max);
+	else
+		canvasWidth = 2*maxOf(abs(min), abs(max));
+	canvasWidth = canvasEnlargeFactor*canvasWidth;
+	Array.getStatistics(y, min, max, mean, stdDev);
+	if(min*max < 0) // points are distributed on both sides of x-axis
+		canvasHeight = abs(min) + abs(max);
+	else
+		canvasHeight = 2*maxOf(abs(min), abs(max));
+	canvasHeight = canvasEnlargeFactor*canvasHeight;
+	canvasSize = canvasEnlargeFactor*maxOf(canvasWidth, canvasHeight); // square canvas
+	xOffset = canvasWidth/2;
+	yOffset = canvasHeight/2;
+//print(canvasWidth, canvasHeight, xOffset, yOffset);
 }
 
-// draw circle encompassing marker coordinates
-makeSelection("point",xmt,ymt);
-run("Fit Circle");
-//run("Overlay Options...", "stroke=red width=10 fill=none show");
-//run("Add Selection...");
-run("Line Width...", "line=20"); //setLineWidth() does not work
-run("Draw", "slice");
+//newImage("Positions", "8-bit black", canvasSize, canvasSize, 1);
+newImage("Positions", "8-bit black", canvasWidth, canvasHeight, 1);
+run("Set Scale...", "distance=1 known=1 unit=um");
 
-
-// drawOval((canvasEnlargeFactor-1)*wdRect*0.5, (canvasEnlargeFactor-1)*htRect*0.5, wdRect, htRect);
-
+if(openTwoFiles) {
+	circleSize = canvasSize/40;
+	print("circle size = "+circleSize);
+	setColor("cyan");
+	//run("Overlay Options...", "stroke=cyan width=2 fill=cyan show");
+	for(i=0; i<3; i++) {
+		xmt[i] = xm[i]+xOffset;
+		ymt[i] = ym[i]+yOffset;	
+	//	makeOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
+	//	run("Add Selection...");
+		fillOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
+	}
+	
+	// draw circle encompassing marker coordinates
+	makeSelection("point",xmt,ymt);
+	run("Fit Circle");
+	//run("Overlay Options...", "stroke=red width=10 fill=none show");
+	//run("Add Selection...");
+	run("Line Width...", "line=20"); //setLineWidth() does not work
+	run("Draw", "slice");
+	
+	
+	// drawOval((canvasEnlargeFactor-1)*wdRect*0.5, (canvasEnlargeFactor-1)*htRect*0.5, wdRect, htRect);
+}
 
 
 // draw X and Y axes
 setColor("white");
 setLineWidth(16);
-drawLine(0, yOffset, canvasSize, yOffset); // draw x-axis in white
-drawLine(xOffset, 0, xOffset, canvasSize); // draw y-axis in white
+drawLine(0, yOffset, canvasWidth, yOffset); // draw x-axis in white
+drawLine(xOffset, 0, xOffset, canvasHeight); // draw y-axis in white
 //setFont("SansSerif", 132, "antiliased");
 //drawString("zoom Voltage = "+zoomVoltage+"V", 50, 200);
 
@@ -113,6 +136,7 @@ width = 512*(zoomVoltage/6);
 run("Overlay Options...", "stroke=red width=10 fill=none show");
 for(i=0; i<a; i++) {
 	makeRectangle(x[i]+xOffset-width/2, y[i]+yOffset-width/2, width, width); 
+//	makeRectangle(x[i]+xOffset, y[i]+yOffset, width, width); 
 		// canvasSize/2 to translate origin (0, 0) to the center of the field
 		// width/2 correction to center each position
 	run("Add Selection...");

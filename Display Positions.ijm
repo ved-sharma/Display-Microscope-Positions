@@ -16,7 +16,7 @@ Following assumpution was made:
 */
 
 var xOffset, yOffset;
-//canvasSize = 5120*2;
+canvasEnlargeFactor = 1.05;
 Dialog.create("Display Positions...");
 Dialog.addNumber("\nX-Y calibration (zoom voltage):", 6);
 Dialog.addCheckbox("Open two files (marker coordinates and cell positions)", false);
@@ -26,7 +26,6 @@ openTwoFiles = Dialog.getCheckbox();
 
 if(openTwoFiles) {
 	path = File.openDialog("Select Marker Cooridinates text file...");
-print(path);
 	filestring = File.openAsString(path);
 	rows=split(filestring, "\n");
 	positions = (rows.length - 4)/5 + 1;
@@ -44,6 +43,16 @@ print(path);
 			a++;
 		}
 	}		
+// determine canvas size by fitting circle to 3 points, followed by rectangle fit
+	newImage("Temp", "8-bit black", 100, 100, 1);
+	makeSelection("point",xm,ym);
+	run("Fit Circle");
+	getSelectionBounds(xRect, yRect, wdRect, htRect);
+	close(); // close temp image
+print(xRect, yRect, wdRect, htRect);
+	canvasSize = canvasEnlargeFactor*wdRect; // making canvasSize 20% larger than the marker circle
+	xOffset = canvasEnlargeFactor*abs(xRect);
+	yOffset = canvasEnlargeFactor*abs(yRect);
 }
 
 path = File.openDialog("Select Cell Positions text file...");
@@ -63,30 +72,37 @@ for(i=0, a=0; i<rows.length; i++){
 	}
 }		
 
-canvasSize = calculateCS ();
-
 newImage("Positions", "8-bit black", canvasSize, canvasSize, 1);
 run("Set Scale...", "distance=1 known=1 unit=um");
 
-circleSize = canvasSize/100;
+circleSize = canvasSize/40;
 print("circle size = "+circleSize);
-run("Overlay Options...", "stroke=cyan width=2 fill=cyan show");
+setColor("cyan");
+//run("Overlay Options...", "stroke=cyan width=2 fill=cyan show");
 for(i=0; i<3; i++) {
-	xmt[i] = xm[i]+xOffset-circleSize/2;
-	ymt[i] = ym[i]+yOffset-circleSize/2;	
-	makeOval(xmt[i], ymt[i], circleSize, circleSize);
-	run("Add Selection...");
+	xmt[i] = xm[i]+xOffset;
+	ymt[i] = ym[i]+yOffset;	
+//	makeOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
+//	run("Add Selection...");
+	fillOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
 }
-//run("Select None");
 
+// draw circle encompassing marker coordinates
 makeSelection("point",xmt,ymt);
 run("Fit Circle");
-run("Overlay Options...", "stroke=red width=10 fill=none show");
-run("Add Selection...");
+//run("Overlay Options...", "stroke=red width=10 fill=none show");
+//run("Add Selection...");
+run("Line Width...", "line=20"); //setLineWidth() does not work
+run("Draw", "slice");
+
+
+// drawOval((canvasEnlargeFactor-1)*wdRect*0.5, (canvasEnlargeFactor-1)*htRect*0.5, wdRect, htRect);
+
+
 
 // draw X and Y axes
 setColor("white");
-setLineWidth(10);
+setLineWidth(16);
 drawLine(0, yOffset, canvasSize, yOffset); // draw x-axis in white
 drawLine(xOffset, 0, xOffset, canvasSize); // draw y-axis in white
 //setFont("SansSerif", 132, "antiliased");
@@ -103,26 +119,4 @@ for(i=0; i<a; i++) {
 }
 run("Select None");
 
-//************************** function for calculating canvas size ********************
-function calculateCS() {
-	if(openTwoFiles) {
-		Array.getStatistics(xm, min, max, mean, stdDev);
-		canvasWidth = abs(min) + abs(max);
-		xOffset = 1.2*maxOf(abs(min), abs(max));
-
-		Array.getStatistics(ym, min, max, mean, stdDev);
-		canvasHeight = abs(min) + abs(max);
-		yOffset = 1.2*maxOf(abs(min), abs(max));
-
-		CS = 1.2*maxOf(canvasWidth, canvasHeight); // increase the canvas size by 20%
-		return CS;
-	}
-	Array.getStatistics(x, min, max, mean, stdDev);
-	canvasWidth = abs(min) + abs(max);
-	Array.getStatistics(y, min, max, mean, stdDev);
-	canvasHeight = abs(min) + abs(max);
-	CS = 1.2*maxOf(canvasWidth, canvasHeight); // increase the canvas size by 20%
-	return CS;
-	
-}
 

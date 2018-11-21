@@ -33,7 +33,12 @@ Features:
 
 4. Flexible X-Y axes line size, text size and line thickness of cell position outline
 
-  Author: Ved P. Sharma, November 2, 2017
+Starting ver: 04
+New additions in version 04b: 
+	Circle around the marker points is drawn in user-defined color (e.g. gray here),
+	rather than default foreground color, which might be different overtime.
+
+  Author: Ved P. Sharma, May 17, 2018
 */
 
 var xOffset, yOffset;
@@ -136,11 +141,14 @@ if(openTwoFiles) {
 		fillOval(xmt[i]-circleSize/2, ymt[i]-circleSize/2, circleSize, circleSize);
 	}
 	
-	// draw circle encompassing marker coordinates
+// draw circle encompassing marker coordinates
 	makeSelection("point",xmt,ymt);
 	run("Fit Circle");
 	run("Line Width...", "line=20"); //setLineWidth() does not work
+	frgd_Color = getValue("rgb.foreground");
+	setForegroundColor(100, 100, 100); // draw circle in dark gray
 	run("Draw", "slice");
+	setForegroundColor(frgd_Color); // reset the background color
 }
 
 // draw X and Y axes

@@ -34,22 +34,24 @@ Features:
 4. Flexible X-Y axes line size, text size and line thickness of cell position outline
 
 Starting ver: 04
-New additions in version 04b: 
-	Circle around the marker points is drawn in user-defined color (e.g. gray here),
-	rather than default foreground color, which might be different overtime.
+b
+New additions in version 04c: 
+	Added an option for the user to select the Labels font size in the Dialog window
 
-  Author: Ved P. Sharma, May 17, 2018
+  Author: Ved P. Sharma, November 20, 2018
 */
 
 var xOffset, yOffset;
 
 Dialog.create("Display cell positions...");
 Dialog.addNumber("\nX-Y calibration (zoom voltage):", 6);
+Dialog.addChoice("Labels font size:", newArray("8", "12", "14", "18", "24"), "14");
 items = newArray("Cell positions", "Marker positions + cell positions");
 Dialog.addRadioButtonGroup("Display following positions:", items, 2, 1, "Cell positions");
 Dialog.show();
 
 zoomVoltage = Dialog.getNumber();
+labelFontSize = Dialog.getChoice();
 openTwoFiles = false;
 if(!matches(Dialog.getRadioButton, "Cell positions"))
 	openTwoFiles = true;
@@ -172,6 +174,6 @@ for(i=0; i<a; i++) {
 	run("Add Selection...");
 }
 run("Select None");
-run("Labels...", "color=white font=12 show"); // to display cell position numbers
+run("Labels...", "color=white font=&labelFontSize show"); // to display cell position numbers
 
 

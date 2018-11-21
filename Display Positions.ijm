@@ -1,31 +1,56 @@
+/****************************************************************************************************
+      Please note that this is a proprietary software written and updated by Ved Sharma. 
+      Use of this software is allowed with his permission and understanding that an
+      authorship is expected in any manuscript using data analyzed with this software.
+      For any further questions, please contact: ved.sharma@einstein.yu.edu
+  ****************************************************************************************************/
 /*
   This macro displays the positions added on the TES multiphoton microscope.
   It gives a visual map of where all the positions are located in x-y.
   This is helpful in finding if there are overlaps between different positions.
 
 Following assumpution was made:
-  z=6V corresponds to a 512x512 um^2 field
-  z=4V corresponds to a 512x512*(4/6) =  341 um^2 field
-  z=2V corresponds to a 512x512*(2/6) =  171 um^2 field
+  z=6V corresponds to a 512x512 pixel^2 field
+  z=4V corresponds to a 512x512*(4/6) =  341 pixel^2 field
+  ... and so on
 
-// flexible  canvas size based on x and y coordinates of added positions
-// center the postion squares
-// checkbox option to open two txt files corresponding to marker coordinates and postions respectively
+Code is base on the following series of transformations:
+1. From the microscope stage coordinate system (top-right) to ImageJ coordinate system (top-left)
+2a. Move ImageJ origin (0, 0) to the center of the canvas, if displaying only cell positions (xOffset and yOffset)
+2b. Move ImageJ origin (0, 0) to the inside of the canvas, when displaying both the marker and cell positions (xOffset and yOffset)
+3. Center each position by moving it by (position size/2) towards top-left direction. 
 
-  Author: Ved P. Sharma, October 26, 2017
+Features:
+1. Checkbox option to open two .txt files. The first one should be the marker coordinates file and
+    the second one should be the cell postions file.
+
+2. Flexible canvas size based on x and y coordinates of added positions. 
+    Square canvas is shown when displaying marker postions along with the cell postions.
+    Origin (0, 0) lies inside the circle made by the three marker postions.
+    Rectangular canvas is shown when displaying only cell postions. The origin (0,0) is at the center of the canvas.
+
+3. All marker and cell postions are drawn centered and not at their top left position
+
+4. Flexible X-Y axes line size, text size and line thickness of cell position outline
+
+  Author: Ved P. Sharma, November 2, 2017
 */
 
 var xOffset, yOffset;
-Dialog.create("Display Positions...");
+
+Dialog.create("Display cell positions...");
 Dialog.addNumber("\nX-Y calibration (zoom voltage):", 6);
-Dialog.addCheckbox("Open two files (marker coordinates and cell positions)", false);
+items = newArray("Cell positions", "Marker positions + cell positions");
+Dialog.addRadioButtonGroup("Display following positions:", items, 2, 1, "Cell positions");
 Dialog.show();
+
 zoomVoltage = Dialog.getNumber();
-openTwoFiles = Dialog.getCheckbox();
+openTwoFiles = false;
+if(!matches(Dialog.getRadioButton, "Cell positions"))
+	openTwoFiles = true;
 
 posWidth = 512*(zoomVoltage/6); // position width in pixels
 extraCanvas = 2*posWidth; 
-//extraCanvas = 0; 
 	// Enlarge canvas by these many pixels in X and Y, when displaying only cell positions
 canvasEnlargeFactor = 1.05;
 	// enlarge canvas size by this factor when dsiplaying both markers and cell postions
@@ -57,13 +82,12 @@ if(openTwoFiles) {
 	run("Fit Circle");
 	getSelectionBounds(xRect, yRect, wdRect, htRect);
 	close(); // close temp image
-print(xRect, yRect, wdRect, htRect);
-	canvasSize = canvasEnlargeFactor*wdRect; // making canvasSize 20% larger than the marker circle
+//	print(xRect, yRect, wdRect, htRect);
+	canvasSize = canvasEnlargeFactor*wdRect;
 	canvasWidth = canvasSize;
 	canvasHeight = canvasSize;
 	xOffset = canvasEnlargeFactor*abs(xRect);
 	yOffset = canvasEnlargeFactor*abs(yRect);
-	
 }
 
 path = File.openDialog("Select Cell Positions text file...");
@@ -80,38 +104,31 @@ for(i=0, a=0; i<rows.length; i++){
 			// negative sign to convert the top-right coordinate system of the microscope stage
 			// to the top left coordinate system of ImageJ
 		y[a] = parseFloat(substring(rows[i+2], 11));
-//print(x[a], y[a]);
 		a++;
 	}
 }		
 
-// find canvas size for cell postions without markers
+// find canvas size and Offsets for cell postions without markers
 if(!openTwoFiles) {
 	Array.getStatistics(x, min, max, mean, stdDev);
-	if(min*max < 0) // points are distributed on both sides of y-axis
-		canvasWidth = abs(min) + abs(max);
-//		canvasWidth = abs(min) + abs(max) + posWidth;
-	else
-		canvasWidth = 2*maxOf(abs(min), abs(max));
+	canvasWidth = 2*maxOf(abs(min), abs(max));
 	canvasWidth = canvasWidth + extraCanvas;
+
 	Array.getStatistics(y, min, max, mean, stdDev);
-	if(min*max < 0) // points are distributed on both sides of x-axis
-		canvasHeight = abs(min) + abs(max);
-//		canvasHeight = abs(min) + abs(max) + posWidth;
-	else
-		canvasHeight = 2*maxOf(abs(min), abs(max));
+	canvasHeight = 2*maxOf(abs(min), abs(max));
 	canvasHeight = canvasHeight + extraCanvas;
+
 	xOffset = canvasWidth/2;
 	yOffset = canvasHeight/2;
 //print(canvasWidth, canvasHeight, xOffset, yOffset);
 }
 
 newImage("Positions", "8-bit black", canvasWidth, canvasHeight, 1);
-//run("Set Scale...", "distance=1 known=1 unit=um");
+//newImage("Positions", "RGB black", canvasWidth, canvasHeight, 1);
 
 if(openTwoFiles) {
 	circleSize = canvasWidth/40;
-	print("circle size = "+circleSize);
+//	print("circle size = "+circleSize);
 	setColor("cyan");
 	for(i=0; i<3; i++) {
 		xmt[i] = xm[i]+xOffset;
@@ -127,24 +144,26 @@ if(openTwoFiles) {
 }
 
 // draw X and Y axes
+biggerDim = maxOf(canvasWidth, canvasHeight);
 setColor("white");
-setLineWidth(16);
+setLineWidth(biggerDim/600); // line width dependent on canvas size
 drawLine(0, yOffset, canvasWidth, yOffset); // draw x-axis in white
 drawLine(xOffset, 0, xOffset, canvasHeight); // draw y-axis in white
-//setFont("SansSerif", 132, "antiliased");
-//drawString("zoom Voltage = "+zoomVoltage+"V", 50, 200);
 
+// Draw zoom volatage at top left corner
+setFont("SansSerif", biggerDim/40, "antiliased"); // text font dependent on canvas size
+drawString("zoom Voltage = "+zoomVoltage+"V", biggerDim/200, (biggerDim/40)+(biggerDim/200)); // text location dependent on canvas size
 
-
-run("Overlay Options...", "stroke=red width=10 fill=none show");
+// Draw cell positions as overlays
+//run("Overlay Options...", "stroke=red width=10 fill=none show");
+run("Overlay Options...", "stroke=red width="+biggerDim/600+" fill=none show");
 for(i=0; i<a; i++) {
 	makeRectangle(x[i]+xOffset-posWidth/2, y[i]+yOffset-posWidth/2, posWidth, posWidth); 
-//	makeRectangle(x[i]+xOffset, y[i]+yOffset, posWidth, posWidth); 
 		// x and y offsets to translate origin (0, 0) to the center of the field
 		// posWidth/2 correction to center each position
 	run("Add Selection...");
 }
 run("Select None");
-run("Labels...", "color=white font=12 show");
+run("Labels...", "color=white font=12 show"); // to display cell position numbers
 
 

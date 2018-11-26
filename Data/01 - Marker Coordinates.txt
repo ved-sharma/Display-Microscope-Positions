@@ -1,0 +1,14 @@
+[Position  1]
+X Location=-2941.9
+Y Location=-2378.2
+Z Location=37.1
+
+[Position  2]
+X Location=-2899.0
+Y Location=5346.9
+Z Location=250.9
+
+[Position  3]
+X Location=4406.9
+Y Location=2129.5
+Z Location=-40.5

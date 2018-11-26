@@ -1,0 +1,54 @@
+[Position  1]
+X Location=2124.8
+Y Location=-1162.3
+Z Location=-120.1
+
+[Position  2]
+X Location=745.3
+Y Location=-356.6
+Z Location=-64.1
+
+[Position  3]
+X Location=197.6
+Y Location=-153.0
+Z Location=-47.4
+
+[Position  4]
+X Location=-174.3
+Y Location=-898.7
+Z Location=-55.4
+
+[Position  5]
+X Location=-576.6
+Y Location=-266.8
+Z Location=-28.3
+
+[Position  6]
+X Location=-1300.0
+Y Location=1009.7
+Z Location=22.5
+
+[Position  7]
+X Location=-365.3
+Y Location=1804.7
+Z Location=21.8
+
+[Position  8]
+X Location=-791.5
+Y Location=2197.6
+Z Location=35.4
+
+[Position  9]
+X Location=380.4
+Y Location=1041.2
+Z Location=-24.2
+
+[Position 10]
+X Location=1761.5
+Y Location=837.8
+Z Location=-67.6
+
+[Position 11]
+X Location=1361.8
+Y Location=72.8
+Z Location=-75.3

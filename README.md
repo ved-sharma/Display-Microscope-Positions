@@ -1,5 +1,8 @@
 # Display-Microscope-Positions
 
+
+![alt text](https://github.com/ved-sharma/Display-Microscope-Positions/blob/master/Data/markers%2BFOVs.png)
+
 This macro displays the positions added on the TES multiphoton microscope.
 It gives a visual map of where all the positions are located in x-y.
 This is helpful in finding if there are overlaps between different positions.

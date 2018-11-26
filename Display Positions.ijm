@@ -1,7 +1,7 @@
 /****************************************************************************************************
       Please note that this is a proprietary software written and updated by Ved Sharma. 
       Use of this software is allowed with his permission and understanding that an
-      authorship is expected in any manuscript using data analyzed with this software.
+      authorship may be expected in any manuscript using data analyzed with this software.
       For any further questions, please contact: ved.sharma@einstein.yu.edu
   ****************************************************************************************************/
 /*
@@ -33,12 +33,11 @@ Features:
 
 4. Flexible X-Y axes line size, text size and line thickness of cell position outline
 
-Starting ver: 04
-b
-New additions in version 04c: 
-	Added an option for the user to select the Labels font size in the Dialog window
+Starting ver: 04c
+New additions in version 4.4 
+	Modified the code to print zoom Voltage (font size and position).
 
-  Author: Ved P. Sharma, November 20, 2018
+  Author: Ved P. Sharma, November 26, 2018
 */
 
 var xOffset, yOffset;
@@ -161,8 +160,11 @@ drawLine(0, yOffset, canvasWidth, yOffset); // draw x-axis in white
 drawLine(xOffset, 0, xOffset, canvasHeight); // draw y-axis in white
 
 // Draw zoom volatage at top left corner
-setFont("SansSerif", biggerDim/40, "antiliased"); // text font dependent on canvas size
-drawString("zoom Voltage = "+zoomVoltage+"V", biggerDim/200, (biggerDim/40)+(biggerDim/200)); // text location dependent on canvas size
+textFontSize = biggerDim/20; // user can control the text font size here, which is dependent on the canvas size
+textXoffset = biggerDim/200;
+textYoffset = textFontSize + textXoffset;
+setFont("SansSerif", textFontSize, "antiliased");
+drawString("zoom Voltage = "+zoomVoltage+"V", textXoffset, textYoffset); // text location dependent on canvas size
 
 // Draw cell positions as overlays
 //run("Overlay Options...", "stroke=red width=10 fill=none show");

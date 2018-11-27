@@ -1,11 +1,14 @@
 /****************************************************************************************************
-      Please note that this is a proprietary software written and updated by Ved Sharma. 
-      Use of this software is allowed with his permission and understanding that an
-      authorship may be expected in any manuscript using data analyzed with this software.
-      For any further questions, please contact: ved.sharma@einstein.yu.edu
-  ****************************************************************************************************/
+Display Positions.ijm, Version 4.4.1 (November 27, 2018)
+Author: Ved P. Sharma, E-mail: ved.sharma@einstein.yu.edu
+
+Starting version 4.4
+Changes
+	- Updated the text in the introduction section
+****************************************************************************************************/
+
 /*
-  This macro displays the positions added on the TES multiphoton microscope.
+  This macro displays the positions added on our TES multiphoton microscope.
   It gives a visual map of where all the positions are located in x-y.
   This is helpful in finding if there are overlaps between different positions.
 
@@ -33,11 +36,6 @@ Features:
 
 4. Flexible X-Y axes line size, text size and line thickness of cell position outline
 
-Starting ver: 04c
-New additions in version 4.4 
-	Modified the code to print zoom Voltage (font size and position).
-
-  Author: Ved P. Sharma, November 26, 2018
 */
 
 var xOffset, yOffset;
